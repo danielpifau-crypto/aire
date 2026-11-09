@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f7f4">
+  <title>Calidad del aire en Sevilla | AireClaro</title>
+  <meta name="description" content="Consulta la calidad del aire en Sevilla: índice europeo AQI, partículas PM2.5 y PM10, contaminantes y meteorología.">
+  <meta property="og:title" content="Calidad del aire en Sevilla | AireClaro">
+  <meta property="og:description" content="Información ambiental actualizada para Sevilla.">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://api.open-meteo.com">
+  <link rel="preconnect" href="https://air-quality-api.open-meteo.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{color-scheme:light;--bg:#f3f7f4;--card:#fff;--ink:#18352b;--muted:#71827a;--line:#e6eee8;--green:#2e9b69;--shadow:0 12px 35px rgba(31,73,53,.07)}
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(circle at 8% 0%,#e3f3e9 0,transparent 28rem),var(--bg);color:var(--ink);font-family:"DM Sans",sans-serif;min-height:100vh}
+    body.dark{color-scheme:dark;--bg:#101b18;--card:#192722;--ink:#e8f3ec;--muted:#9aada2;--line:#2b3b34;--shadow:0 12px 35px rgba(0,0,0,.18);background:radial-gradient(circle at 8% 0%,#1e3a2d 0,transparent 28rem),var(--bg)}
+    .shell{width:min(1120px,calc(100% - 36px));margin:0 auto;padding:28px 0 42px}
+    header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:26px}
+    .brand{display:flex;align-items:center;gap:12px}.logo{width:42px;height:42px;border-radius:14px;background:#dff2e6;color:#218653;display:grid;place-items:center;font-size:22px}
+    .brand strong{font:800 18px Manrope,sans-serif;letter-spacing:-.5px}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:2px;letter-spacing:.08em;text-transform:uppercase}
+    .actions{display:flex;align-items:center;gap:9px}.pill,.icon-btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:9px 13px;font:600 12px "DM Sans";cursor:pointer}
+    .icon-btn{width:38px;height:38px;padding:0;font-size:17px}.pill:hover,.icon-btn:hover{border-color:#9ac9ad}
+    .hero{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;margin-bottom:18px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow)}
+    .main-card{padding:27px 30px;position:relative;overflow:hidden;min-height:305px}
+    .main-card:after{content:"";position:absolute;width:250px;height:250px;border-radius:50%;right:-95px;top:-115px;background:rgba(72,177,117,.08)}
+    .eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+    h1{font:800 clamp(25px,3vw,34px) Manrope,sans-serif;letter-spacing:-1.2px;margin:8px 0 4px}
+    .sub{color:var(--muted);font-size:13px}.main-flex{display:flex;align-items:center;gap:28px;margin-top:23px}
+    .gauge{width:190px;height:190px;flex:none;position:relative}.gauge svg{width:100%;height:100%;transform:rotate(-90deg)}
+    .gauge-track{fill:none;stroke:var(--line);stroke-width:12}.gauge-value{fill:none;stroke:var(--green);stroke-width:12;stroke-linecap:round;stroke-dasharray:440;stroke-dashoffset:440;transition:stroke-dashoffset 1s ease,stroke .5s}
+    .gauge-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column}
+    .gauge-center strong{font:800 52px Manrope;letter-spacing:-3px;line-height:1}.gauge-center span{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.13em;margin-top:5px}
+    .status h2{font:800 23px Manrope;margin:0 0 8px}.status p{font-size:13px;line-height:1.6;color:var(--muted);max-width:310px;margin:0}
+    .aqi-scale{display:flex;gap:4px;margin-top:22px}.aqi-scale i{height:7px;flex:1;border-radius:20px}.scale-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:9px;margin-top:6px}
+    .weather-card{padding:25px 25px 20px;display:flex;flex-direction:column;justify-content:space-between}
+    .weather-top{display:flex;justify-content:space-between;align-items:flex-start}.weather-top h2{font:800 20px Manrope;margin:6px 0 0}
+    .sun-icon{font-size:34px}.temp{font:800 56px Manrope;letter-spacing:-3px;margin:12px 0 0}.weather-desc{font-size:12px;color:var(--muted)}
+    .weather-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:22px}
+    .weather-metric{border-top:1px solid var(--line);padding-top:12px}.weather-metric span{display:block;color:var(--muted);font-size:10px}.weather-metric b{display:block;font:700 15px Manrope;margin-top:5px}
+    .section-head{display:flex;justify-content:space-between;align-items:end;margin:28px 2px 13px;gap:12px}.section-head h2{font:800 18px Manrope;margin:0}.section-head p{margin:4px 0 0;color:var(--muted);font-size:11px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+    .pollutant{padding:17px 18px}.poll-top{display:flex;justify-content:space-between;align-items:center}.poll-name{font:700 13px Manrope}.poll-tag{font-size:9px;color:var(--muted);background:var(--bg);padding:5px 8px;border-radius:99px}
+    .poll-value{font:800 26px Manrope;letter-spacing:-.7px;margin:13px 0 2px}.poll-unit{font-size:10px;color:var(--muted);font-weight:500}
+    .meter{height:5px;background:var(--line);border-radius:9px;margin:14px 0 7px;overflow:hidden}.meter span{display:block;height:100%;width:0;border-radius:9px;transition:width .7s}
+    .poll-foot{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:9px}
+    .charts{display:grid;grid-template-columns:1fr 1fr;gap:14px}.chart-card{padding:20px 21px}.chart-title{display:flex;justify-content:space-between;align-items:center;gap:10px}.chart-title h3{font:700 14px Manrope;margin:0}.chart-title span{color:var(--muted);font-size:10px}
+    canvas{width:100%;height:190px;display:block;margin-top:14px}
+    .legend{display:flex;gap:15px;font-size:10px;color:var(--muted);margin-top:7px}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}
+    .bottom{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:19px;padding:15px 18px;font-size:11px;color:var(--muted)}
+    .source a{color:var(--green);text-decoration:none;font-weight:700}.updated{white-space:nowrap}
+    .notice{border-radius:14px;background:#fff4df;color:#805b18;padding:11px 14px;font-size:11px;line-height:1.5;margin-top:14px}
+    body.dark .notice{background:#3b3020;color:#f2d59b}
+    .loading{opacity:.58;pointer-events:none}.error{padding:24px;text-align:center;color:var(--muted);font-size:13px}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    @media(max-width:760px){.hero{grid-template-columns:1fr}.main-card{min-height:auto}.weather-card{min-height:240px}.grid{grid-template-columns:repeat(2,1fr)}.charts{grid-template-columns:1fr}.shell{width:min(100% - 24px,600px);padding-top:17px}}
+    @media(max-width:440px){header{align-items:flex-start}.brand strong{font-size:16px}.pill{padding:8px 10px}.main-card{padding:22px 18px}.main-flex{gap:12px}.gauge{width:145px;height:145px}.gauge-center strong{font-size:42px}.status h2{font-size:19px}.status p{font-size:11px}.grid{gap:9px}.pollutant{padding:14px}.poll-value{font-size:23px}.bottom{align-items:flex-start;flex-direction:column}.updated{white-space:normal}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+  </style>
+</head>
+<body>
+  <main class="shell" id="widget">
+    <header>
+      <div class="brand"><div class="logo" aria-hidden="true">✳</div><div><strong>AireClaro</strong><small>Observatorio urbano</small></div></div>
+      <div class="actions"><span class="pill" id="liveState">● Conectando…</span><button class="icon-btn" id="themeBtn" aria-label="Cambiar tema" title="Cambiar tema">◐</button><button class="icon-btn" id="refreshBtn" aria-label="Actualizar datos" title="Actualizar">↻</button></div>
+    </header>
+
+    <section class="hero" aria-label="Resumen de calidad del aire">
+      <article class="card main-card">
+        <div class="eyebrow">Calidad del aire · Sevilla</div>
+        <h1>Respira tranquilo.</h1>
+        <div class="sub">Índice europeo de calidad del aire (European AQI)</div>
+        <div class="main-flex">
+          <div class="gauge" role="img" aria-label="Indicador del índice europeo de calidad del aire">
+            <svg viewBox="0 0 180 180" aria-hidden="true"><circle class="gauge-track" cx="90" cy="90" r="70"/><circle class="gauge-value" id="gaugeArc" cx="90" cy="90" r="70"/></svg>
+            <div class="gauge-center"><strong id="aqiValue">—</strong><span>EU AQI</span></div>
+          </div>
+          <div class="status"><h2 id="aqiLabel">Esperando datos</h2><p id="aqiText">Estamos consultando las condiciones atmosféricas de Sevilla.</p></div>
+        </div>
+        <div class="aqi-scale" aria-label="Escala de calidad del aire">
+          <i style="background:#39a96b"></i><i style="background:#a7c94a"></i><i style="background:#f2c94c"></i><i style="background:#ef9844"></i><i style="background:#dc655d"></i><i style="background:#8d5aa7"></i>
+        </div>
+        <div class="scale-labels"><span>Buena</span><span>Regular</span><span>Moderada</span><span>Mala</span><span>Muy mala</span><span>Extrema</span></div>
+      </article>
+
+      <article class="card weather-card">
+        <div>
+          <div class="weather-top"><div><div class="eyebrow">Ahora mismo en</div><h2>Sevilla, Andalucía</h2><div class="sub">37.3891° N · 5.9845° O</div></div><div class="sun-icon" aria-hidden="true">☀️</div></div>
+          <div class="temp" id="temperature">—°</div><div class="weather-desc">Temperatura del aire a 2 metros</div>
+        </div>
+        <div class="weather-grid">
+          <div class="weather-metric"><span>Humedad</span><b id="humidity">— %</b></div>
+          <div class="weather-metric"><span>Viento</span><b id="wind">— km/h</b></div>
+          <div class="weather-metric"><span>Dirección</span><b id="windDir">—</b></div>
+        </div>
+      </article>
+    </section>
+
+    <div id="notice" class="notice" role="note">Los datos de calidad del aire proceden de un modelo atmosférico de Open‑Meteo (CAMS); no son una lectura directa de una estación de medición.</div>
+
+    <div class="section-head"><div><h2>Contaminantes</h2><p>Concentraciones horarias estimadas cerca de la superficie</p></div><span class="eyebrow">μg/m³ · excepto CO</span></div>
+    <section class="grid" id="pollutants" aria-live="polite">
+      <div class="card pollutant"><div class="error">Cargando mediciones…</div></div>
+    </section>
+
+    <div class="section-head"><div><h2>Cómo evoluciona el aire</h2><p>Últimas 24 horas disponibles · valores horarios</p></div></div>
+    <section class="charts">
+      <article class="card chart-card"><div class="chart-title"><h3>Índice europeo AQI</h3><span>Escala EU AQI</span></div><canvas id="aqiChart" aria-label="Gráfica de evolución del AQI durante las últimas 24 horas"></canvas></article>
+      <article class="card chart-card"><div class="chart-title"><h3>Partículas en suspensión</h3><span>μg/m³</span></div><canvas id="pmChart" aria-label="Gráfica de PM2.5 y PM10 durante las últimas 24 horas"></canvas><div class="legend"><span><i class="dot" style="background:#2e9b69"></i>PM2.5</span><span><i class="dot" style="background:#e5a34b"></i>PM10</span></div></article>
+    </section>
+
+    <footer class="card bottom"><div class="source">Fuente: <a href="https://open-meteo.com/en/docs/air-quality-api" target="_blank" rel="noopener">Open‑Meteo Air Quality API</a> · <a href="https://open-meteo.com/en/docs" target="_blank" rel="noopener">Weather API</a></div><div class="updated" id="updated">Última actualización: —</div></footer>
+    <p class="sr-only" id="statusMessage" aria-live="polite"></p>
+  </main>
+
+<script>
+(() => {
+  "use strict";
+  const LAT=37.3891, LON=-5.9845, REFRESH_MS=15*60*1000;
+  const $=id=>document.getElementById(id);
+  const pollutantDefs=[
+    {key:"pm2_5",name:"PM2.5",unit:"μg/m³",limit:"Buena ≤ 5",max:140,thresholds:[5,15,50,90,140]},
+    {key:"pm10",name:"PM10",unit:"μg/m³",limit:"Buena ≤ 15",max:270,thresholds:[15,45,120,195,270]},
+    {key:"nitrogen_dioxide",name:"NO₂",unit:"μg/m³",limit:"Buena ≤ 10",max:150,thresholds:[10,25,60,100,150]},
+    {key:"ozone",name:"O₃",unit:"μg/m³",limit:"Buena ≤ 60",max:180,thresholds:[60,100,120,160,180]},
+    {key:"sulphur_dioxide",name:"SO₂",unit:"μg/m³",limit:"Buena ≤ 20",max:275,thresholds:[20,40,125,190,275]},
+    {key:"carbon_monoxide",name:"CO",unit:"μg/m³",limit:"Sin umbral EU AQI en esta escala",max:10000,thresholds:null}
+  ];
+  const colors=["#39a96b","#a7c94a","#e8bd43","#ef9844","#dc655d","#8d5aa7"];
+  const levels=[
+    {label:"Buena",desc:"La calidad del aire es satisfactoria. La contaminación supone poco o ningún riesgo."},
+    {label:"Regular",desc:"La calidad del aire es aceptable; algunos contaminantes pueden afectar a personas muy sensibles."},
+    {label:"Moderada",desc:"Puede haber efectos en personas sensibles. Si notas molestias, reduce el esfuerzo prolongado al aire libre."},
+    {label:"Mala",desc:"Los grupos sensibles pueden experimentar efectos en la salud. Conviene limitar el ejercicio intenso al aire libre."},
+    {label:"Muy mala",desc:"La calidad del aire es desfavorable. Reduce la exposición y evita actividades físicas intensas en exteriores."},
+    {label:"Extremadamente mala",desc:"Situación muy desfavorable. Evita la exposición al aire libre y sigue las recomendaciones sanitarias oficiales."}
+  ];
+  let airData=null, weatherData=null, charts={aqi:null,pm:null};
+  const fmt=(n,d=1)=>Number.isFinite(Number(n))?Number(n).toLocaleString("es-ES",{maximumFractionDigits:d}):"—";
+  const dateFmt=s=>new Date(s).toLocaleString("es-ES",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+  const direction=deg=>{if(!Number.isFinite(deg))return "—";return ["N","NE","E","SE","S","SO","O","NO"][Math.round(deg/45)%8]};
+  function levelFor(aqi){if(aqi<=20)return 0;if(aqi<=40)return 1;if(aqi<=60)return 2;if(aqi<=80)return 3;if(aqi<=100)return 4;return 5}
+  function colorForValue(value,thresholds){if(!thresholds)return colors[0];return colors[thresholds.findIndex(t=>value<=t)===-1?5:thresholds.findIndex(t=>value<=t)]}
+  function renderPollutants(data){
+    $("pollutants").innerHTML=pollutantDefs.map(p=>{
+      const v=data[p.key], valid=Number.isFinite(v), pct=valid?Math.min(100,Math.max(2,v/p.max*100)):0;
+      const col=valid?colorForValue(v,p.thresholds):"var(--muted)";
+      let band="Dato no disponible";
+      if(valid&&p.thresholds){const ix=p.thresholds.findIndex(t=>v<=t);band=["Buena","Regular","Moderada","Mala","Muy mala","Extrema"][ix<0?5:ix]}
+      else if(valid) band="Concentración estimada";
+      return `<article class="card pollutant"><div class="poll-top"><span class="poll-name">${p.name}</span><span class="poll-tag">${band}</span></div><div class="poll-value">${valid?fmt(v):"—"} <span class="poll-unit">${p.unit}</span></div><div class="meter"><span style="width:${pct}%;background:${col}"></span></div><div class="poll-foot"><span>${p.limit}</span><span>${valid?"Valor horario":"Sin medición"}</span></div></article>`;
+    }).join("");
+  }
+  function setGauge(value){
+    const idx=levelFor(value), arc=$("gaugeArc");
+    $("aqiValue").textContent=Math.round(value);
+    $("aqiLabel").textContent=levels[idx].label;
+    $("aqiText").textContent=levels[idx].desc;
+    arc.style.stroke=colors[idx];
+    const circumference=2*Math.PI*70, progress=Math.min(1,Math.max(0,value/120));
+    arc.style.strokeDasharray=circumference;
+    arc.style.strokeDashoffset=circumference*(1-progress);
+  }
+  function drawLineChart(canvas,series,maxValue){
+    const ctx=canvas.getContext("2d"), dpr=window.devicePixelRatio||1, w=canvas.clientWidth, h=190;
+    canvas.width=w*dpr;canvas.height=h*dpr;ctx.scale(dpr,dpr);
+    const pad={l:34,r:10,t:12,b:27}, pw=w-pad.l-pad.r, ph=h-pad.t-pad.b;
+    ctx.clearRect(0,0,w,h);ctx.font='10px "DM Sans",sans-serif';
+    const all=series.flatMap(s=>s.values).filter(Number.isFinite);
+    if(!all.length){ctx.fillStyle="#82938a";ctx.fillText("Sin datos horarios disponibles",pad.l,85);return}
+    const ymax=Math.max(maxValue||0,...all,1)*1.12;
+    for(let i=0;i<=4;i++){const y=pad.t+ph*i/4;ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue("--line");ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillStyle=getComputedStyle(document.body).getPropertyValue("--muted");ctx.fillText(fmt(ymax*(1-i/4),0),2,y+3)}
+    series.forEach(s=>{
+      ctx.beginPath();ctx.lineWidth=2.5;ctx.strokeStyle=s.color;ctx.lineJoin="round";ctx.lineCap="round";
+      let started=false;
+      s.values.forEach((v,i)=>{if(!Number.isFinite(v))return;const x=pad.l+(s.values.length<=1?0:i/(s.values.length-1))*pw,y=pad.t+ph-(v/ymax)*ph;if(!started){ctx.moveTo(x,y);started=true}else ctx.lineTo(x,y)});
+      ctx.stroke();
+    });
+    const labels=["-24 h","-18 h","-12 h","-6 h","Ahora"];labels.forEach((t,i)=>{ctx.fillStyle=getComputedStyle(document.body).getPropertyValue("--muted");ctx.fillText(t,pad.l+pw*i/4-12,h-7)});
+  }
+  function renderCharts(hourly){
+    const now=new Date(), entries=hourly.time.map((t,i)=>({t,i})).filter(x=>new Date(x.t)<=now).slice(-24);
+    const vals=k=>entries.map(x=>Number.isFinite(hourly[k]?.[x.i])?hourly[k][x.i]:null);
+    drawLineChart($("aqiChart"),[{values:vals("european_aqi"),color:"#2e9b69"}],120);
+    drawLineChart($("pmChart"),[{values:vals("pm2_5"),color:"#2e9b69"},{values:vals("pm10"),color:"#e5a34b"}],null);
+  }
+  async function fetchJSON(url){const r=await fetch(url,{cache:"no-store"});if(!r.ok)throw new Error("Error HTTP "+r.status);return r.json()}
+  async function load(){
+    $("liveState").textContent="● Actualizando…";$("widget").classList.add("loading");
+    const airURL=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}&current=european_aqi,us_aqi,pm2_5,pm10,nitrogen_dioxide,ozone,sulphur_dioxide,carbon_monoxide&hourly=european_aqi,pm2_5,pm10,nitrogen_dioxide,ozone,sulphur_dioxide,carbon_monoxide&past_hours=24&forecast_hours=1&timezone=Europe%2FMadrid`;
+    const weatherURL=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m&timezone=Europe%2FMadrid`;
+    try{
+      const [air,weather]=await Promise.all([fetchJSON(airURL),fetchJSON(weatherURL)]);
+      if(!air.current||!weather.current)throw new Error("La API no ha devuelto condiciones actuales.");
+      airData=air;weatherData=weather;
+      const c=air.current;
+      if(!Number.isFinite(c.european_aqi))throw new Error("No hay un índice europeo disponible para esta ubicación.");
+      setGauge(c.european_aqi);
+      pollutantDefs.forEach(p=>{});
+      renderPollutants(Object.fromEntries(pollutantDefs.map(p=>[p.key,c[p.key]])));
+      $("temperature").textContent=fmt(weather.current.temperature_2m,0)+"°";
+      $("humidity").textContent=fmt(weather.current.relative_humidity_2m,0)+" %";
+      $("wind").textContent=fmt(weather.current.wind_speed_10m,0)+" km/h";
+      $("windDir").textContent=direction(weather.current.wind_direction_10m);
+      renderCharts(air.hourly);
+      const measuredAt=c.time||weather.current.time;
+      $("updated").textContent="Hora del dato: "+dateFmt(measuredAt)+" · Actualizado: "+dateFmt(new Date().toISOString());
+      $("liveState").textContent="● Datos disponibles";
+      $("statusMessage").textContent="Datos de calidad del aire actualizados.";
+      $("notice").textContent="Calidad del aire: estimación modelizada de Open‑Meteo/CAMS para las coordenadas de Sevilla (resolución aproximada del modelo). No equivale a una medición directa de una estación oficial. El índice mostrado es el European AQI; no debe compararse directamente con el US AQI.";
+    }catch(err){
+      console.error(err);
+      $("liveState").textContent="● Sin conexión";
+      $("statusMessage").textContent="No se pudieron cargar los datos.";
+      $("aqiLabel").textContent="Datos no disponibles";
+      $("aqiText").textContent="No ha sido posible obtener una lectura actual. Comprueba tu conexión e inténtalo de nuevo.";
+      $("aqiValue").textContent="—";
+      $("pollutants").innerHTML='<div class="card error" style="grid-column:1/-1">No se han podido cargar los contaminantes. No se muestran valores simulados. Pulsa el botón de actualizar para volver a intentarlo.</div>';
+      $("updated").textContent="Sin actualización reciente";
+    }finally{$("widget").classList.remove("loading")}
+  }
+  $("refreshBtn").addEventListener("click",load);
+  $("themeBtn").addEventListener("click",()=>{document.body.classList.toggle("dark");localStorage.setItem("aireclaro-theme",document.body.classList.contains("dark")?"dark":"light");if(airData?.hourly)renderCharts(airData.hourly)});
+  const saved=localStorage.getItem("aireclaro-theme");
+  if(saved==="dark"||(saved!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches))document.body.classList.add("dark");
+  let resizeTimer;window.addEventListener("resize",()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(airData?.hourly)renderCharts(airData.hourly)},150)});
+  load();setInterval(load,REFRESH_MS);
+})();
+</script>
+</body>
+</html>
